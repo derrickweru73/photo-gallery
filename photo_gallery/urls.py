@@ -5,12 +5,21 @@ from .views import (
     UserLogoutView,
     UserPasswordChangeView,
     edit_profile,
+    home,
     profile,
     register,
 )
 
 
 urlpatterns = [
+
+    path(
+        "",
+        home,
+        name="home",
+    ),
+
+
     path(
         "register/",
         register,

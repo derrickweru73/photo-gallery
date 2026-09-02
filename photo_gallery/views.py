@@ -14,6 +14,7 @@ from .forms import (
     RegistrationForm,
     UserUpdateForm,
 )
+from .models import Photo
 
 
 def register(request):
@@ -44,6 +45,18 @@ def register(request):
         {"form": form},
     )
 
+def home(request):
+    """Display photos on the gallery homepage."""
+
+    photos = Photo.objects.all()
+
+    return render(
+        request,
+        "home.html",
+        {
+            "photos": photos,
+        },
+    )
 
 class UserLoginView(LoginView):
     """Handle user login."""
