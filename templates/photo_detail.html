@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}{{ photo.title }} | Photo Gallery{% endblock %}
+
+{% block content %}
+
+<section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+    <!-- Back Button -->
+    <a
+        href="{% url 'home' %}"
+        class="inline-flex items-center text-indigo-600 font-semibold hover:text-indigo-800 mb-8"
+    >
+        ← Back to Gallery
+    </a>
+
+    <!-- Photo and Information -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+
+        <!-- Photo -->
+        <div class="bg-gray-100 rounded-2xl overflow-hidden shadow-lg">
+
+            <img
+                src="{{ photo.image.url }}"
+                alt="{{ photo.title }}"
+                class="w-full max-h-[650px] object-cover"
+            >
+
+        </div>
+
+        <!-- Information -->
+        <div>
+
+            <p class="text-sm font-semibold text-indigo-600 uppercase tracking-wider">
+                Photo
+            </p>
+
+            <h1 class="text-4xl font-bold text-gray-900 mt-2">
+                {{ photo.title }}
+            </h1>
+
+            {% if photo.description %}
+                <p class="text-gray-600 text-lg mt-6 leading-relaxed">
+                    {{ photo.description }}
+                </p>
+            {% endif %}
+
+            <!-- Tags -->
+            {% if photo.tags.all %}
+                <div class="flex flex-wrap gap-2 mt-6">
+
+                    {% for tag in photo.tags.all %}
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
+                            #{{ tag.name }}
+                        </span>
+                    {% endfor %}
+
+                </div>
+            {% endif %}
+
+            <!-- Metadata -->
+            <div class="border-t border-gray-200 mt-8 pt-6 space-y-3">
+
+                <p class="text-gray-600">
+                    <span class="font-semibold text-gray-900">
+                        Uploaded by:
+                    </span>
+
+                    {{ photo.uploaded_by.username }}
+                </p>
+
+                <p class="text-gray-600">
+                    <span class="font-semibold text-gray-900">
+                        Uploaded:
+                    </span>
+
+                    {{ photo.created_at|date:"F j, Y" }}
+                </p>
+
+            </div>
+
+            <!-- Interaction -->
+            <div class="border-t border-gray-200 mt-8 pt-6">
+
+                <h2 class="text-lg font-semibold mb-4">
+                    What do you think?
+                </h2>
+
+                {% if user.is_authenticated %}
+
+                    <div class="flex flex-wrap items-center gap-4">
+
+                        <!-- Like -->
+                        <form
+                            method="post"
+                            action="{% url 'photo_like' photo.pk %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="px-5 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition"
+                            >
+                                ❤️ Like
+                            </button>
+
+                        </form>
+
+                        <span class="text-gray-600">
+                            {{ like_count }} likes
+                        </span>
+
+                        <!-- Dislike -->
+                        <form
+                            method="post"
+                            action="{% url 'photo_dislike' photo.pk %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
+                            >
+                                👎 Dislike
+                            </button>
+
+                        </form>
+
+                        <span class="text-gray-600">
+                            {{ dislike_count }} dislikes
+                        </span>
+
+                    </div>
+
+                {% else %}
+
+                    <p class="text-gray-500">
+
+                        Please
+
+                        <a
+                            href="{% url 'login' %}"
+                            class="text-indigo-600 font-semibold hover:underline"
+                        >
+                            log in
+                        </a>
+
+                        to like or dislike this photo.
+
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

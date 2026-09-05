@@ -6,7 +6,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.models import User
 
-from .models import Profile
+from .models import Profile, Photo
 
 
 class RegistrationForm(UserCreationForm):
@@ -72,3 +72,15 @@ class UserUpdateForm(forms.ModelForm):
             )
 
         return email
+
+class PhotoForm(forms.ModelForm):
+    """Form used to upload a photo to the gallery."""
+
+    class Meta:
+        model = Photo
+        fields = [
+            "title",
+            "description",
+            "image",
+            "tags",
+        ]

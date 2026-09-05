@@ -6,15 +6,21 @@ from django.contrib.auth.views import (
     LogoutView,
     PasswordChangeView,
 )
-from django.shortcuts import redirect, render
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+)
 from django.urls import reverse_lazy
-
+from .forms import PhotoForm
 from .forms import (
     ProfileForm,
     RegistrationForm,
     UserUpdateForm,
 )
-from .models import Photo
+
+from .models import Photo, PhotoInteraction, Tag
+
 
 
 def register(request):
@@ -50,13 +56,70 @@ def home(request):
 
     photos = Photo.objects.all()
 
+    selected_tag = request.GET.get("tag")
+
+    if selected_tag:
+        photos = photos.filter(
+            tags__name=selected_tag
+        )
+
+    tags = Tag.objects.all()
+
     return render(
         request,
         "home.html",
         {
             "photos": photos,
+            "tags": tags,
+            "selected_tag": selected_tag,
         },
     )
+
+def photo_detail(request, pk):
+    photo = get_object_or_404(Photo, pk=pk)
+
+    like_count = photo.interactions.filter(
+        reaction=PhotoInteraction.LIKE
+    ).count()
+
+    dislike_count = photo.interactions.filter(
+        reaction=PhotoInteraction.DISLIKE
+    ).count()
+
+    return render(
+        request,
+        "photo_detail.html",
+        {
+            "photo": photo,
+            "like_count": like_count,
+            "dislike_count": dislike_count,
+        },
+    )
+
+@login_required
+def interact_with_photo(request, pk, reaction):
+    """Create or update a user's reaction to a photo."""
+
+    photo = get_object_or_404(
+        Photo,
+        pk=pk,
+    )
+
+    if reaction not in (
+        PhotoInteraction.LIKE,
+        PhotoInteraction.DISLIKE,
+    ):
+        return redirect("photo_detail", pk=photo.pk)
+
+    PhotoInteraction.objects.update_or_create(
+        user=request.user,
+        photo=photo,
+        defaults={
+            "reaction": reaction,
+        },
+    )
+
+    return redirect("photo_detail", pk=photo.pk)
 
 class UserLoginView(LoginView):
     """Handle user login."""
@@ -126,6 +189,28 @@ def edit_profile(request):
         },
     )
 
+@login_required
+def upload_photo(request):
+    """Allow logged-in users to upload a photo."""
+
+    if request.method == "POST":
+        form = PhotoForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            photo = form.save(commit=False)
+            photo.uploaded_by = request.user
+            photo.save()
+            form.save_m2m()
+
+            return redirect("photo_detail", pk=photo.pk)
+    else:
+        form = PhotoForm()
+
+    return render(
+        request,
+        "upload_photo.html",
+        {"form": form},
+    )
 
 class UserPasswordChangeView(PasswordChangeView):
     """Allow users to change their password."""
