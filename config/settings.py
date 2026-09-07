@@ -135,7 +135,14 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Production security settings
 DEBUG = config("DEBUG", default=True, cast=bool)
 
-# ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = config(
+    "ALLOWED_HOSTS",
+    default="127.0.0.1,localhost,photo-gallery-fmui.onrender.com"
+).split(",")
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://photo-gallery-fmui.onrender.com",
+]
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
